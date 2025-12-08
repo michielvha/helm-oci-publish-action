@@ -1,0 +1,31 @@
+name: Publish Helm Chart - GitVersion Integration
+on:
+  push:
+    branches: [main]
+
+permissions:
+  packages: write
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine Version
+        id: version
+        uses: michielvha/gitversion-tag-action@main
+        with:
+          configFilePath: gitversion.yml
+
+      - name: Publish Helm Chart
+        uses: ./actions/helm-oci-publish-action
+        with:
+          chart-path: charts/crossplane-aws-resources
+          registry: ghcr.io/${{ github.repository_owner }}/charts
+          version: ${{ steps.version.outputs.semver }}
+          app-version: ${{ steps.version.outputs.semver }}

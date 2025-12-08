@@ -1,0 +1,6 @@
+# Ignore packaged charts and backups
+*.tgz
+*.bak
+Chart.lock
+charts/
+.helm/

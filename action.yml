@@ -1,0 +1,99 @@
+name: "Helm OCI Publish Action"
+description: "Package Helm charts and publish to OCI registries with automatic version management"
+author: "Michiel VH"
+
+branding:
+  icon: "anchor"
+  color: "purple"
+
+inputs:
+  chart-path:
+    description: "Path to Helm chart directory (e.g., charts/my-chart)"
+    required: true
+
+  registry:
+    description: "OCI registry URL without oci:// prefix (e.g., ghcr.io/owner/charts)"
+    required: true
+
+  version:
+    description: "Chart version without v prefix (e.g., 1.0.0)"
+    required: true
+
+  app-version:
+    description: "App version to set in Chart.yaml (defaults to chart version)"
+    required: false
+    default: ""
+
+  github-token:
+    description: "GitHub token for authentication to ghcr.io"
+    required: false
+    default: ${{ github.token }}
+
+  helm-version:
+    description: "Helm version to use"
+    required: false
+    default: "3.14.0"
+
+  update-dependencies:
+    description: "Update chart dependencies before packaging"
+    required: false
+    default: "false"
+
+  working-directory:
+    description: "Working directory to run the action in"
+    required: false
+    default: "."
+
+outputs:
+  chart-url:
+    description: "Full Helm chart OCI URL with version"
+    value: ${{ steps.publish.outputs.chart-url }}
+
+  chart-file:
+    description: "Path to the packaged chart .tgz file"
+    value: ${{ steps.publish.outputs.chart-file }}
+
+  chart-name:
+    description: "Name of the Helm chart"
+    value: ${{ steps.publish.outputs.chart-name }}
+
+  chart-version:
+    description: "Version of the published chart"
+    value: ${{ inputs.version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Helm
+      uses: azure/setup-helm@v4
+      with:
+        version: ${{ inputs.helm-version }}
+
+    - name: Update Chart Version
+      id: update
+      shell: bash
+      env:
+        CHART_PATH: ${{ inputs.chart-path }}
+        VERSION: ${{ inputs.version }}
+        APP_VERSION: ${{ inputs.app-version }}
+        WORKING_DIR: ${{ inputs.working-directory }}
+      run: |
+        echo "::group::Updating Chart.yaml version"
+        bash ${{ github.action_path }}/scripts/update-version.sh
+        echo "::endgroup::"
+
+    - name: Package and Publish
+      id: publish
+      shell: bash
+      env:
+        CHART_PATH: ${{ inputs.chart-path }}
+        REGISTRY: ${{ inputs.registry }}
+        VERSION: ${{ inputs.version }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_ACTOR: ${{ github.actor }}
+        UPDATE_DEPS: ${{ inputs.update-dependencies }}
+        WORKING_DIR: ${{ inputs.working-directory }}
+      run: |
+        echo "::group::Packaging and Publishing Helm Chart"
+        bash ${{ github.action_path }}/scripts/package-publish.sh
+        echo "::endgroup::"
