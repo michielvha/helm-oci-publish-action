@@ -1,17 +1,18 @@
-# Helm OCI Publish Action
+![Header](img/header.png)
 
 A GitHub Action that automatically updates Helm chart versions, packages charts, and publishes them to OCI registries.
 
 ## Features
 
-- ✅ **Automatic version management** - Updates Chart.yaml automatically
-- ✅ **OCI registry support** - Works with ghcr.io, ACR, ECR, etc.
-- ✅ **Dependency management** - Optional dependency updates
-- ✅ **GitHub Container Registry integration** - Seamless ghcr.io support
-- ✅ **Detailed outputs** - Get chart URL, file path, and metadata
+![features](img/features.png)
 
 ## Usage
 
+> [!TIP]
+> Check out the [examples/workflows/](examples/workflows/) directory for usage examples.
+
+
+<!-- 
 ### Basic Example
 
 ```yaml
@@ -83,11 +84,11 @@ jobs:
     registry: ghcr.io/${{ github.repository_owner }}/charts
     version: 1.0.0
     update-dependencies: true
-```
+``` -->
 
 ## Inputs
 
-| Input | Description | Required | Default |
+<!-- | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
 | `chart-path` | Path to Helm chart directory | Yes | - |
 | `registry` | OCI registry (without `oci://`) | Yes | - |
@@ -96,16 +97,20 @@ jobs:
 | `github-token` | GitHub token for authentication | No | `${{ github.token }}` |
 | `helm-version` | Helm version to use | No | `3.14.0` |
 | `update-dependencies` | Update dependencies before packaging | No | `false` |
-| `working-directory` | Working directory | No | `.` |
+| `working-directory` | Working directory | No | `.` | -->
+
+![inputs](img/inputs.png)
 
 ## Outputs
 
-| Output | Description |
+![outputs](img/outputs.png)
+
+<!-- | Output | Description |
 |--------|-------------|
 | `chart-url` | Full OCI chart URL with version |
 | `chart-file` | Path to packaged .tgz file |
 | `chart-name` | Name of the Helm chart |
-| `chart-version` | Published chart version |
+| `chart-version` | Published chart version | -->
 
 ## How It Works
 

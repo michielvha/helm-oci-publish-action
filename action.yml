@@ -97,3 +97,4 @@ runs:
         echo "::group::Packaging and Publishing Helm Chart"
         bash ${{ github.action_path }}/scripts/package-publish.sh
         echo "::endgroup::"
+
