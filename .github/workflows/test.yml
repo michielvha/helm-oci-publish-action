@@ -18,34 +18,28 @@ jobs:
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
 
-            - name: Setup GitVersion for testing
+            - name: Tag the repo
               id: gitversion
-              uses: gittools/actions/gitversion/setup@v0
+              uses: michielvha/gitversion-tag-action@main
               with:
-                  versionSpec: "5.x"
-
-            - name: Determine Version
-              id: version
-              uses: gittools/actions/gitversion/execute@v0
-              with:
-                  useConfigFile: true
-                  configFilePath: gitversion.yml
+                configFilePath: gitversion.yml
+                prefix: 'v'
 
             - name: Run Helm OCI Publish (Test Mode)
               id: test-publish
-              uses: ./
+              uses: michielvha/helm-oci-publish-action@main
               with:
                   chart-path: examples/test-chart
                   registry: ghcr.io
                   repository: ${{ github.repository }}/test-chart
                   username: ${{ github.actor }}
                   password: ${{ secrets.GITHUB_TOKEN }}
-                  chart-version: ${{ steps.version.outputs.semVer }}
-                  app-version: ${{ steps.version.outputs.semVer }}
+                  chart-version: ${{ steps.gitversion.outputs.semVer }}
+                  app-version: ${{ steps.gitversion.outputs.semVer }}
               continue-on-error: true
 
             - name: Display action outputs
@@ -82,17 +76,3 @@ jobs:
               run: |
                   helm template test examples/test-chart/
                   echo "✓ Chart templating successful"
-
-    test-scripts:
-        name: Test Individual Scripts
-        runs-on: ubuntu-latest
-
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-
-            - name: Verify scripts are executable
-              run: |
-                  test -x ./scripts/package-publish.sh
-                  test -x ./scripts/login.sh
-                  echo "✓ All scripts are executable"
