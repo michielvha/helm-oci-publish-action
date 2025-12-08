@@ -1,83 +1,80 @@
 name: Test Helm OCI Publish Action
 
 on:
-    pull_request:
-        paths:
-            - "examples/**"
-            - "scripts/**"
-            - "action.yml"
-    push:
-        branches:
-            - main
-    workflow_dispatch:
+  pull_request:
+    paths:
+      - "examples/**"
+      - "scripts/**"
+      - "action.yml"
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
-    id-token: write
-    contents: write
-    packages: write
+  id-token: write
+  contents: write
+  packages: write
 
 jobs:
-    test-helm-publish:
-        name: Test Action with Sample Chart
-        runs-on: ubuntu-latest
+  test-helm-publish:
+    name: Test Action with Sample Chart
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v6
-              with:
-                  fetch-depth: 0
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-            - name: Tag the repo
-              id: gitversion
-              uses: michielvha/gitversion-tag-action@main
-              with:
-                configFilePath: gitversion.yml
-                prefix: 'v'
+      - name: Tag the repo
+        id: gitversion
+        uses: michielvha/gitversion-tag-action@main
+        with:
+          configFilePath: gitversion.yml
+          prefix: "v"
 
-            - name: Run Helm OCI Publish (Test Mode)
-              id: test-publish
-              uses: michielvha/helm-oci-publish-action@main
-              with:
-                  chart-path: examples/test-chart
-                  registry: ghcr.io
-                  repository: ${{ github.repository }}/test-chart
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.GITHUB_TOKEN }}
-                  chart-version: ${{ steps.gitversion.outputs.semVer }}
-                  app-version: ${{ steps.gitversion.outputs.semVer }}
-              continue-on-error: true
+      - name: Run Helm OCI Publish (Test Mode)
+        id: test-publish
+        uses: michielvha/helm-oci-publish-action@main
+        with:
+          chart-path: examples/test-chart
+          registry: ghcr.io/${{ github.repository_owner }}/charts
+          version: ${{ steps.gitversion.outputs.semVer }}
+          app-version: ${{ steps.gitversion.outputs.semVer }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
 
-            - name: Display action outputs
-              run: |
-                  echo "Chart reference: ${{ steps.test-publish.outputs.chart-reference }}"
-                  echo "Digest: ${{ steps.test-publish.outputs.digest }}"
-                  echo "Registry: ${{ steps.test-publish.outputs.registry }}"
-                  echo "Repository: ${{ steps.test-publish.outputs.repository }}"
-                  echo "Chart version: ${{ steps.test-publish.outputs.chart-version }}"
+      - name: Display action outputs
+        run: |
+          echo \"Chart URL: ${{ steps.test-publish.outputs.chart-url }}\"
+          echo \"Chart file: ${{ steps.test-publish.outputs.chart-file }}\"
+          echo \"Chart name: ${{ steps.test-publish.outputs.chart-name }}\"
+          echo \"Chart version: ${{ steps.test-publish.outputs.chart-version }}\"
 
-            - name: Verify test completed
-              run: |
-                  echo "✓ Test workflow completed successfully"
+      - name: Verify test completed
+        run: |
+          echo "✓ Test workflow completed successfully"
 
-    test-helm-lint:
-        name: Lint Example Chart
-        runs-on: ubuntu-latest
+  test-helm-lint:
+    name: Lint Example Chart
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Setup Helm
-              uses: azure/setup-helm@v4
-              with:
-                  version: "latest"
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: "latest"
 
-            - name: Lint example chart
-              run: |
-                  helm lint examples/test-chart/
-                  echo "✓ Chart linting passed"
+      - name: Lint example chart
+        run: |
+          helm lint examples/test-chart/
+          echo "✓ Chart linting passed"
 
-            - name: Template example chart
-              run: |
-                  helm template test examples/test-chart/
-                  echo "✓ Chart templating successful"
+      - name: Template example chart
+        run: |
+          helm template test examples/test-chart/
+          echo "✓ Chart templating successful"
