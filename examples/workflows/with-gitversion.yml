@@ -23,7 +23,7 @@ jobs:
           configFilePath: gitversion.yml
 
       - name: Publish Helm Chart
-        uses: ./actions/helm-oci-publish-action
+        uses: michielvha/helm-oci-publish-action@main
         with:
           chart-path: charts/crossplane-aws-resources
           registry: ghcr.io/${{ github.repository_owner }}/charts
